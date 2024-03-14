@@ -1,0 +1,46 @@
+Problem Statement: Imagine there are five philosophers sitting around a circular dining table.
+Each philosopher alternates between thinking and eating.
+There are five plates and five forks placed between the philosophers. 
+Every philosopher needs two forks to eat.
+Philosophers can pick up forks on their left or right, but only one fork at a time.
+Philosophers can only eat when they have both forks.
+
+import java.util.concurrent.Semaphore;
+class DiningPhilosophers {
+    private static final int NUM_PHILOSOPHERS = 5;
+    private static final Semaphore[] forks = new Semaphore[NUM_PHILOSOPHERS];
+    private static final Semaphore room = new Semaphore(NUM_PHILOSOPHERS - 1);
+    public static void main(String[] args) {
+        for (int i = 0; i < NUM_PHILOSOPHERS; i++) {
+            forks[i] = new Semaphore(1); // Initialize each fork
+        }
+
+        for (int i = 0; i < NUM_PHILOSOPHERS; i++) {
+            final int philosopherId = i;
+            new Thread(() -> dine(philosopherId)).start();
+        }
+    }
+    static void dine(int philosopherId) {
+        while (true) {
+            think();
+            try {
+                room.acquire(); // Only allow at most 4 philosophers in the room
+                forks[philosopherId].acquire(); // Pick up left fork
+                forks[(philosopherId + 1) % NUM_PHILOSOPHERS].acquire(); // Pick up right fork
+                eat();
+                forks[philosopherId].release(); // Put down left fork
+                forks[(philosopherId + 1) % NUM_PHILOSOPHERS].release(); // Put down right fork
+                room.release(); // Allow another philosopher to enter the room
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+    static void think() {
+        // Implement philosopher's thinking behavior
+    }
+
+    static void eat() {
+        // Implement philosopher's eating behavior
+    }
+}
